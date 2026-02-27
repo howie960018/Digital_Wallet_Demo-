@@ -1,0 +1,71 @@
+digitalWallet/
+├── HELP.md
+├── mvnw
+├── mvnw.cmd
+├── pom.xml
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── wallet/
+│   │   │           └── digitalwallet/
+│   │   │               ├── DigitalWalletApplication.java
+│   │   │               ├── controller/
+│   │   │               │   └── TransferController.java
+│   │   │               ├── dto/
+│   │   │               │   └── TransferRequest.java
+│   │   │               ├── entity/
+│   │   │               │   ├── Account.java
+│   │   │               │   └── Transaction.java
+│   │   │               ├── exception/
+│   │   │               │   ├── BusinessException.java
+│   │   │               │   └── GlobalExceptionHandler.java
+│   │   │               ├── repository/
+│   │   │               │   ├── AccountRepository.java
+│   │   │               │   └── TransactionRepository.java
+│   │   │               └── service/
+│   │   │                   └── TransferService.java
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       ├── static/
+│   │       └── templates/
+│   └── test/
+│       └── java/
+│           └── com/
+│               └── wallet/
+│                   └── digitalwallet/
+│                       └── DigitalWalletApplicationTests.java
+└── target/
+    ├── classes/
+    │   ├── application.yml
+    │   └── com/
+    │       └── wallet/
+    │           └── digitalwallet/
+    │               ├── DigitalWalletApplication.class
+    │               ├── controller/
+    │               │   └── TransferController.class
+    │               ├── dto/
+    │               │   └── TransferRequest.class
+    │               ├── entity/
+    │               │   ├── Account.class
+    │               │   ├── Account$AccountBuilder.class
+    │               │   ├── Transaction.class
+    │               │   └── Transaction$TransactionBuilder.class
+    │               ├── exception/
+    │               │   ├── BusinessException.class
+    │               │   └── GlobalExceptionHandler.class
+    │               ├── repository/
+    │               │   ├── AccountRepository.class
+    │               │   └── TransactionRepository.class
+    │               └── service/
+    │                   └── TransferService.class
+    ├── generated-sources/
+    │   └── annotations/
+    ├── generated-test-sources/
+    │   └── test-annotations/
+    └── test-classes/
+        └── com/
+            └── wallet/
+                └── digitalwallet/
+                    └── DigitalWalletApplicationTests.class
+
