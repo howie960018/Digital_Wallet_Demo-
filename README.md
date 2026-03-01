@@ -8,6 +8,7 @@ A RESTful digital wallet backend service built with Spring Boot 4, providing use
 
 - [Tech Stack](#tech-stack)
 - [Features](#features)
+- [Architecture & Design Decisions](#architecture--design-decisions)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
@@ -44,6 +45,37 @@ A RESTful digital wallet backend service built with Spring Boot 4, providing use
 - Transaction history with pagination
 - Global exception handling with consistent API response structure
 - Snowflake algorithm for distributed unique transaction ID generation
+
+---
+
+## Architecture & Design Decisions
+
+### Concurrency Control
+- **Pessimistic Locking** (`SELECT ... FOR UPDATE`) for balance-critical operations (transfer, withdrawal)
+- **Optimistic Locking** (`@Version`) as a safety net on Account entity
+- **Lock Ordering** by account ID to prevent deadlocks in bidirectional transfers
+
+### Idempotency
+- Every transaction requires a unique `idempotencyKey`
+- Duplicate requests return the original transaction result without re-processing
+- Enforced at both application logic and database UNIQUE constraint levels
+
+### Financial Precision
+- All monetary values use `BigDecimal` (Java) and `DECIMAL(19,4)` (PostgreSQL)
+- Avoids floating-point arithmetic errors (e.g., `0.1 + 0.2 != 0.3`)
+
+### Transaction Safety
+- Transfer operations (debit + credit + transaction log) are wrapped in a single `@Transactional`
+- Registration + account creation are atomic — no orphan users without wallets
+
+### ID Generation
+- Custom Snowflake ID generator for globally unique, time-ordered transaction numbers
+- Supports up to 4,096 IDs per millisecond per node
+
+### Authorization
+- JWT Authentication (stateless, no server-side sessions)
+- Account ownership verification — users can only operate on their own accounts
+- Frozen accounts block outgoing transfers and withdrawals but allow incoming funds
 
 ---
 
