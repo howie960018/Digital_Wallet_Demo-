@@ -8,6 +8,7 @@ import com.wallet.digitalwallet.entity.Account;
 import com.wallet.digitalwallet.entity.User;
 import com.wallet.digitalwallet.exception.BusinessException;
 import com.wallet.digitalwallet.repository.AccountRepository;
+import com.wallet.digitalwallet.repository.AuditLogRepository;
 import com.wallet.digitalwallet.repository.UserRepository;
 import com.wallet.digitalwallet.util.SecurityUtil;
 import org.junit.jupiter.api.AfterEach;
@@ -39,6 +40,9 @@ class UserServiceTest {
 
     @Mock
     private AccountRepository accountRepository;
+    @Mock
+    private AuditLogRepository auditLogRepository;
+
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -212,6 +216,8 @@ class UserServiceTest {
     @DisplayName("凍結帳戶成功：ACTIVE 帳戶應可被凍結")
     void freezeAccount_success() {
         // Arrange
+        securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
         AccountStatusRequest request = new AccountStatusRequest();
         request.setAccountId(100L);
         request.setReason("可疑交易");
@@ -225,8 +231,9 @@ class UserServiceTest {
                 .status("ACTIVE")
                 .build();
 
-        when(accountRepository.findById(100L)).thenReturn(Optional.of(account));
+        when(accountRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(account));
         when(accountRepository.save(any(Account.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(auditLogRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         // Act
         AccountResponse response = userService.freezeAccount(request);
@@ -234,22 +241,26 @@ class UserServiceTest {
         // Assert
         assertThat(response.getStatus()).isEqualTo("FROZEN");
         verify(accountRepository).save(argThat(a -> "FROZEN".equals(a.getStatus())));
+        verify(auditLogRepository).save(any());
     }
 
     @Test
     @DisplayName("凍結帳戶失敗：帳戶已是 FROZEN 應拋出 BusinessException")
     void freezeAccount_alreadyFrozen_throwsException() {
         // Arrange
+        securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
         AccountStatusRequest request = new AccountStatusRequest();
         request.setAccountId(100L);
         request.setReason("已凍結");
 
         Account account = Account.builder()
                 .id(100L)
+                .userId(1L)
                 .status("FROZEN")
                 .build();
 
-        when(accountRepository.findById(100L)).thenReturn(Optional.of(account));
+        when(accountRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(account));
 
         // Act & Assert
         assertThatThrownBy(() -> userService.freezeAccount(request))
@@ -262,16 +273,18 @@ class UserServiceTest {
     @DisplayName("凍結帳戶失敗：帳戶不存在應拋出 BusinessException")
     void freezeAccount_notFound_throwsException() {
         // Arrange
+        securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
         AccountStatusRequest request = new AccountStatusRequest();
         request.setAccountId(999L);
         request.setReason("測試");
 
-        when(accountRepository.findById(999L)).thenReturn(Optional.empty());
+        when(accountRepository.findByIdAndUserId(999L, 1L)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThatThrownBy(() -> userService.freezeAccount(request))
                 .isInstanceOf(BusinessException.class)
-                .extracting("code").isEqualTo("ACCOUNT_NOT_FOUND");
+                .extracting("code").isEqualTo("ACCESS_DENIED");
     }
 
     // ========== unfreezeAccount ==========
@@ -280,6 +293,8 @@ class UserServiceTest {
     @DisplayName("解凍帳戶成功：FROZEN 帳戶應可被解凍")
     void unfreezeAccount_success() {
         // Arrange
+        securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
         AccountStatusRequest request = new AccountStatusRequest();
         request.setAccountId(100L);
         request.setReason("解凍");
@@ -293,8 +308,9 @@ class UserServiceTest {
                 .status("FROZEN")
                 .build();
 
-        when(accountRepository.findById(100L)).thenReturn(Optional.of(account));
+        when(accountRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(account));
         when(accountRepository.save(any(Account.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(auditLogRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         // Act
         AccountResponse response = userService.unfreezeAccount(request);
@@ -302,22 +318,26 @@ class UserServiceTest {
         // Assert
         assertThat(response.getStatus()).isEqualTo("ACTIVE");
         verify(accountRepository).save(argThat(a -> "ACTIVE".equals(a.getStatus())));
+        verify(auditLogRepository).save(any());
     }
 
     @Test
     @DisplayName("解凍帳戶失敗：帳戶已是 ACTIVE 應拋出 BusinessException")
     void unfreezeAccount_alreadyActive_throwsException() {
         // Arrange
+        securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(1L);
+
         AccountStatusRequest request = new AccountStatusRequest();
         request.setAccountId(100L);
         request.setReason("已正常");
 
         Account account = Account.builder()
                 .id(100L)
+                .userId(1L)
                 .status("ACTIVE")
                 .build();
 
-        when(accountRepository.findById(100L)).thenReturn(Optional.of(account));
+        when(accountRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(account));
 
         // Act & Assert
         assertThatThrownBy(() -> userService.unfreezeAccount(request))

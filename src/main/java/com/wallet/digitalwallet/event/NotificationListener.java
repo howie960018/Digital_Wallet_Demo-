@@ -4,9 +4,10 @@ import com.wallet.digitalwallet.entity.Notification;
 import com.wallet.digitalwallet.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
@@ -16,7 +17,7 @@ public class NotificationListener {
     private final NotificationRepository notificationRepository;
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleTransactionEvent(TransactionEvent event) {
 
         log.info("[通知系統] 收到交易事件：type={}, txnNo={}, amount={}",

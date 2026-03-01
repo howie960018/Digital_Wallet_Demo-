@@ -110,8 +110,8 @@ public class TransferService {
         // 2. 權限檢查：只能儲值到自己的帳戶
         verifyAccountOwnership(request.getAccountId());
 
-        // 3. 查詢帳戶
-        Account account = accountRepository.findById(request.getAccountId())
+        // 3. 查詢帳戶（悲觀鎖）
+        Account account = accountRepository.findByIdForUpdate(request.getAccountId())
                 .orElseThrow(() -> new BusinessException("ACCOUNT_NOT_FOUND", "帳戶不存在"));
 
         // 4. 加錢

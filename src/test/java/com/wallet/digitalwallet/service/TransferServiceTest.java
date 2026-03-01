@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -39,6 +40,9 @@ class TransferServiceTest {
 
     @Mock
     private SnowflakeIdGenerator idGenerator;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
 
     @InjectMocks
     private TransferService transferService;
@@ -298,7 +302,7 @@ class TransferServiceTest {
         when(transactionRepository.findByIdempotencyKey("topup-001")).thenReturn(Optional.empty());
         when(idGenerator.nextId()).thenReturn(123456789L);
         when(accountRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(account));
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+        when(accountRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(account));
         when(accountRepository.save(any(Account.class))).thenAnswer(inv -> inv.getArgument(0));
         when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTxn);
 
@@ -351,7 +355,7 @@ class TransferServiceTest {
         Account mockAccount = Account.builder().id(99L).userId(1L).build();
         when(transactionRepository.findByIdempotencyKey("topup-002")).thenReturn(Optional.empty());
         when(accountRepository.findByIdAndUserId(99L, 1L)).thenReturn(Optional.of(mockAccount));
-        when(accountRepository.findById(99L)).thenReturn(Optional.empty());
+        when(accountRepository.findByIdForUpdate(99L)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThatThrownBy(() -> transferService.topUp(request))
