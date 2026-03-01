@@ -8,13 +8,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/transfer")
 @RequiredArgsConstructor
+@Tag(name = "轉帳", description = "帳戶間轉帳")
 public class TransferController {
 
     private final TransferService transferService;
 
+    @Operation(summary = "轉帳", description = "從一個帳戶轉帳到另一個帳戶")
     @PostMapping
     public ResponseEntity<Transaction> transfer(@Valid @RequestBody TransferRequest request) {
         Transaction txn = transferService.transfer(request);

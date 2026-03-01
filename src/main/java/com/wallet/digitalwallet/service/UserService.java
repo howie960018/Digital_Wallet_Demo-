@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import com.wallet.digitalwallet.dto.AccountResponse;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.wallet.digitalwallet.dto.AccountStatusRequest;
 
 
 @Service
@@ -68,6 +69,7 @@ public class UserService {
                 .build();
     }
 
+
     public List<AccountResponse> getAccounts(Long userId) {
 
         if (!userRepository.existsById(userId)) {
@@ -75,13 +77,52 @@ public class UserService {
         }
 
         return accountRepository.findByUserId(userId).stream()
-                .map(account -> AccountResponse.builder()
-                        .accountId(account.getId())
-                        .accountType(account.getAccountType())
-                        .balance(account.getBalance())
-                        .currency(account.getCurrency())
-                        .status(account.getStatus())
-                        .build())
+                .map(this::toAccountResponse)
                 .collect(Collectors.toList());
+    }
+
+
+
+    @Transactional
+    public AccountResponse freezeAccount(AccountStatusRequest request) {
+
+        Account account = accountRepository.findById(request.getAccountId())
+                .orElseThrow(() -> new BusinessException("ACCOUNT_NOT_FOUND", "帳戶不存在"));
+
+        if ("FROZEN".equals(account.getStatus())) {
+            throw new BusinessException("ALREADY_FROZEN", "帳戶已經是凍結狀態");
+        }
+
+        account.setStatus("FROZEN");
+        accountRepository.save(account);
+
+        return toAccountResponse(account);
+    }
+
+    @Transactional
+    public AccountResponse unfreezeAccount(AccountStatusRequest request) {
+
+        Account account = accountRepository.findById(request.getAccountId())
+                .orElseThrow(() -> new BusinessException("ACCOUNT_NOT_FOUND", "帳戶不存在"));
+
+        if ("ACTIVE".equals(account.getStatus())) {
+            throw new BusinessException("ALREADY_ACTIVE", "帳戶已經是正常狀態");
+        }
+
+        account.setStatus("ACTIVE");
+        accountRepository.save(account);
+
+        return toAccountResponse(account);
+    }
+
+    // 抽出共用的轉換方法，避免重複程式碼
+    private AccountResponse toAccountResponse(Account account) {
+        return AccountResponse.builder()
+                .accountId(account.getId())
+                .accountType(account.getAccountType())
+                .balance(account.getBalance())
+                .currency(account.getCurrency())
+                .status(account.getStatus())
+                .build();
     }
 }

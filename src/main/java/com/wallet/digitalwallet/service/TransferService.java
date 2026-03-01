@@ -65,6 +65,11 @@ public class TransferService {
             throw new BusinessException("SELF_TRANSFER", "不能轉帳給自己");
         }
 
+        // 新增：檢查發送方帳戶狀態
+        if ("FROZEN".equals(fromAccount.getStatus())) {
+            throw new BusinessException("ACCOUNT_FROZEN", "發送方帳戶已被凍結，無法轉出");
+        }
+
         if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
             throw new BusinessException("INSUFFICIENT_BALANCE", "餘額不足");
         }
@@ -144,6 +149,13 @@ public class TransferService {
                 .orElseThrow(() -> new BusinessException("ACCOUNT_NOT_FOUND", "帳戶不存在"));
 
         // 3. 餘額檢查
+
+        // 3. 餘額檢查
+        // 新增：檢查帳戶狀態
+        if ("FROZEN".equals(account.getStatus())) {
+            throw new BusinessException("ACCOUNT_FROZEN", "帳戶已被凍結，無法提現");
+        }
+
         if (account.getBalance().compareTo(request.getAmount()) < 0) {
             throw new BusinessException("INSUFFICIENT_BALANCE", "餘額不足");
         }
