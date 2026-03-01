@@ -13,7 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
-import java.util.UUID;
+
+import com.wallet.digitalwallet.dto.TransactionResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -164,5 +167,30 @@ public class TransferService {
 
         accountRepository.save(account);
         return transactionRepository.save(txn);
+    }
+
+
+    public Page<TransactionResponse> getTransactions(Long accountId, Pageable pageable) {
+
+        // 1. 確認帳戶存在
+        accountRepository.findById(accountId)
+                .orElseThrow(() -> new BusinessException("ACCOUNT_NOT_FOUND", "帳戶不存在"));
+
+        // 2. 查詢交易紀錄（轉入 + 轉出）
+        Page<Transaction> transactions = transactionRepository
+                .findByFromAccountIdOrToAccountId(accountId, accountId, pageable);
+
+        // 3. Entity 轉 DTO
+        return transactions.map(txn -> TransactionResponse.builder()
+                .txnNo(txn.getTxnNo())
+                .type(txn.getType())
+                .amount(txn.getAmount())
+                .status(txn.getStatus())
+                .fromAccountId(txn.getFromAccountId())
+                .toAccountId(txn.getToAccountId())
+                .balanceAfterTxn(txn.getBalanceAfterTxn())
+                .remark(txn.getRemark())
+                .createdAt(txn.getCreatedAt())
+                .build());
     }
 }
