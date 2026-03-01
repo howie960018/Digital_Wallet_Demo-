@@ -12,6 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import com.wallet.digitalwallet.dto.AccountResponse;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -62,5 +66,22 @@ public class UserService {
                 .balance(account.getBalance())
                 .currency(account.getCurrency())
                 .build();
+    }
+
+    public List<AccountResponse> getAccounts(Long userId) {
+
+        if (!userRepository.existsById(userId)) {
+            throw new BusinessException("USER_NOT_FOUND", "使用者不存在");
+        }
+
+        return accountRepository.findByUserId(userId).stream()
+                .map(account -> AccountResponse.builder()
+                        .accountId(account.getId())
+                        .accountType(account.getAccountType())
+                        .balance(account.getBalance())
+                        .currency(account.getCurrency())
+                        .status(account.getStatus())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
