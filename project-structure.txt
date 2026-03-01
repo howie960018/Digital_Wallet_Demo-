@@ -3,6 +3,7 @@ digitalWallet/
 ├── mvnw
 ├── mvnw.cmd
 ├── pom.xml
+├── project-structure.txt
 ├── src/
 │   ├── main/
 │   │   ├── java/
@@ -10,23 +11,52 @@ digitalWallet/
 │   │   │       └── wallet/
 │   │   │           └── digitalwallet/
 │   │   │               ├── DigitalWalletApplication.java
+│   │   │               ├── config/
+│   │   │               │   ├── DataInitializer.java
+│   │   │               │   ├── JwtAuthenticationFilter.java
+│   │   │               │   ├── SecurityConfig.java
+│   │   │               │   └── SwaggerConfig.java
 │   │   │               ├── controller/
-│   │   │               │   └── TransferController.java
+│   │   │               │   ├── AuthController.java
+│   │   │               │   ├── TopUpController.java
+│   │   │               │   ├── TransactionController.java
+│   │   │               │   ├── TransferController.java
+│   │   │               │   ├── UserController.java
+│   │   │               │   └── WithdrawController.java
 │   │   │               ├── dto/
-│   │   │               │   └── TransferRequest.java
+│   │   │               │   ├── AccountResponse.java
+│   │   │               │   ├── AccountStatusRequest.java
+│   │   │               │   ├── ApiResponse.java
+│   │   │               │   ├── LoginRequest.java
+│   │   │               │   ├── LoginResponse.java
+│   │   │               │   ├── RegisterRequest.java
+│   │   │               │   ├── RegisterResponse.java
+│   │   │               │   ├── TopUpRequest.java
+│   │   │               │   ├── TransactionResponse.java
+│   │   │               │   ├── TransferRequest.java
+│   │   │               │   └── WithdrawRequest.java
 │   │   │               ├── entity/
 │   │   │               │   ├── Account.java
-│   │   │               │   └── Transaction.java
+│   │   │               │   ├── Transaction.java
+│   │   │               │   └── User.java
 │   │   │               ├── exception/
 │   │   │               │   ├── BusinessException.java
 │   │   │               │   └── GlobalExceptionHandler.java
 │   │   │               ├── repository/
 │   │   │               │   ├── AccountRepository.java
-│   │   │               │   └── TransactionRepository.java
-│   │   │               └── service/
-│   │   │                   └── TransferService.java
+│   │   │               │   ├── TransactionRepository.java
+│   │   │               │   └── UserRepository.java
+│   │   │               ├── service/
+│   │   │               │   ├── AuthService.java
+│   │   │               │   ├── TransferService.java
+│   │   │               │   └── UserService.java
+│   │   │               └── util/
+│   │   │                   ├── JwtUtil.java
+│   │   │                   ├── SecurityUtil.java
+│   │   │                   └── SnowflakeIdGenerator.java
 │   │   └── resources/
 │   │       ├── application.yml
+│   │       ├── application.yml.example
 │   │       ├── static/
 │   │       └── templates/
 │   └── test/
@@ -34,31 +64,79 @@ digitalWallet/
 │           └── com/
 │               └── wallet/
 │                   └── digitalwallet/
-│                       └── DigitalWalletApplicationTests.java
+│                       ├── DigitalWalletApplicationTests.java
+│                       ├── controller/
+│                       │   ├── AuthControllerTest.java
+│                       │   ├── TopUpControllerTest.java
+│                       │   ├── TransactionControllerTest.java
+│                       │   ├── TransferControllerTest.java
+│                       │   ├── UserControllerTest.java
+│                       │   └── WithdrawControllerTest.java
+│                       ├── service/
+│                       │   ├── AuthServiceTest.java
+│                       │   ├── TransferServiceTest.java
+│                       │   └── UserServiceTest.java
+│                       └── util/
+│                           ├── JwtUtilTest.java
+│                           └── SnowflakeIdGeneratorTest.java
 └── target/
     ├── classes/
     │   ├── application.yml
+    │   ├── application.yml.example
     │   └── com/
     │       └── wallet/
     │           └── digitalwallet/
     │               ├── DigitalWalletApplication.class
+    │               ├── config/
+    │               │   ├── DataInitializer.class
+    │               │   ├── JwtAuthenticationFilter.class
+    │               │   ├── SecurityConfig.class
+    │               │   └── SwaggerConfig.class
     │               ├── controller/
-    │               │   └── TransferController.class
+    │               │   ├── AuthController.class
+    │               │   ├── TopUpController.class
+    │               │   ├── TransactionController.class
+    │               │   ├── TransferController.class
+    │               │   ├── UserController.class
+    │               │   └── WithdrawController.class
     │               ├── dto/
-    │               │   └── TransferRequest.class
+    │               │   ├── AccountResponse.class
+    │               │   ├── AccountResponse$AccountResponseBuilder.class
+    │               │   ├── AccountStatusRequest.class
+    │               │   ├── ApiResponse.class
+    │               │   ├── LoginRequest.class
+    │               │   ├── LoginResponse.class
+    │               │   ├── LoginResponse$LoginResponseBuilder.class
+    │               │   ├── RegisterRequest.class
+    │               │   ├── RegisterResponse.class
+    │               │   ├── RegisterResponse$RegisterResponseBuilder.class
+    │               │   ├── TopUpRequest.class
+    │               │   ├── TransactionResponse.class
+    │               │   ├── TransactionResponse$TransactionResponseBuilder.class
+    │               │   ├── TransferRequest.class
+    │               │   └── WithdrawRequest.class
     │               ├── entity/
     │               │   ├── Account.class
     │               │   ├── Account$AccountBuilder.class
     │               │   ├── Transaction.class
-    │               │   └── Transaction$TransactionBuilder.class
+    │               │   ├── Transaction$TransactionBuilder.class
+    │               │   ├── User.class
+    │               │   └── User$UserBuilder.class
     │               ├── exception/
     │               │   ├── BusinessException.class
     │               │   └── GlobalExceptionHandler.class
     │               ├── repository/
     │               │   ├── AccountRepository.class
-    │               │   └── TransactionRepository.class
-    │               └── service/
-    │                   └── TransferService.class
+    │               │   ├── TransactionRepository.class
+    │               │   └── UserRepository.class
+    │               ├── service/
+    │               │   ├── AuthService.class
+    │               │   ├── TransferService.class
+    │               │   └── UserService.class
+    │               └── util/
+    │                   ├── JwtUtil.class
+    │                   ├── SecurityUtil.class
+    │                   └── SnowflakeIdGenerator.class
     ├── generated-sources/
     │   └── annotations/
     ├── generated-test-sources/
@@ -67,5 +145,18 @@ digitalWallet/
         └── com/
             └── wallet/
                 └── digitalwallet/
-                    └── DigitalWalletApplicationTests.class
-
+                    ├── DigitalWalletApplicationTests.class
+                    ├── controller/
+                    │   ├── AuthControllerTest.class
+                    │   ├── TopUpControllerTest.class
+                    │   ├── TransactionControllerTest.class
+                    │   ├── TransferControllerTest.class
+                    │   ├── UserControllerTest.class
+                    │   └── WithdrawControllerTest.class
+                    ├── service/
+                    │   ├── AuthServiceTest.class
+                    │   ├── TransferServiceTest.class
+                    │   └── UserServiceTest.class
+                    └── util/
+                        ├── JwtUtilTest.class
+                        └── SnowflakeIdGeneratorTest.class
