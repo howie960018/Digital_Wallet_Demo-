@@ -1,15 +1,15 @@
 package com.wallet.digitalwallet.controller;
 
+import com.wallet.digitalwallet.dto.ApiResponse;
 import com.wallet.digitalwallet.dto.TopUpRequest;
 import com.wallet.digitalwallet.entity.Transaction;
 import com.wallet.digitalwallet.service.TransferService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/topup")
@@ -19,10 +19,9 @@ public class TopUpController {
 
     private final TransferService transferService;
 
-    @Operation(summary = "儲值", description = "從外部來源儲值到指定帳戶")
+    @Operation(summary = "儲值")
     @PostMapping
-    public ResponseEntity<Transaction> topUp(@Valid @RequestBody TopUpRequest request) {
-        Transaction txn = transferService.topUp(request);
-        return ResponseEntity.ok(txn);
+    public ResponseEntity<ApiResponse<Transaction>> topUp(@Valid @RequestBody TopUpRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("儲值成功", transferService.topUp(request)));
     }
 }

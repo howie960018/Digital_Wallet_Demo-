@@ -1,15 +1,15 @@
 package com.wallet.digitalwallet.controller;
 
+import com.wallet.digitalwallet.dto.ApiResponse;
 import com.wallet.digitalwallet.dto.TransferRequest;
 import com.wallet.digitalwallet.entity.Transaction;
 import com.wallet.digitalwallet.service.TransferService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/transfer")
@@ -19,10 +19,9 @@ public class TransferController {
 
     private final TransferService transferService;
 
-    @Operation(summary = "轉帳", description = "從一個帳戶轉帳到另一個帳戶")
+    @Operation(summary = "轉帳")
     @PostMapping
-    public ResponseEntity<Transaction> transfer(@Valid @RequestBody TransferRequest request) {
-        Transaction txn = transferService.transfer(request);
-        return ResponseEntity.ok(txn);
+    public ResponseEntity<ApiResponse<Transaction>> transfer(@Valid @RequestBody TransferRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("轉帳成功", transferService.transfer(request)));
     }
 }
