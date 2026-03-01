@@ -8,6 +8,7 @@ import com.wallet.digitalwallet.entity.Transaction;
 import com.wallet.digitalwallet.exception.BusinessException;
 import com.wallet.digitalwallet.repository.AccountRepository;
 import com.wallet.digitalwallet.repository.TransactionRepository;
+import com.wallet.digitalwallet.util.SecurityUtil;
 import com.wallet.digitalwallet.util.SnowflakeIdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,8 @@ public class TransferService {
         if (existing.isPresent()) {
             return existing.get();
         }
+
+        verifyAccountOwnership(request.getFromAccountId());
 
         // 2. 查詢帳戶（悲觀鎖，防止併發）
 //        Account fromAccount = accountRepository.findByIdForUpdate(request.getFromAccountId())
@@ -109,6 +112,8 @@ public class TransferService {
             return existing.get();
         }
 
+        verifyAccountOwnership(request.getAccountId());
+
         // 2. 查詢帳戶（儲值不需要悲觀鎖，因為只有加錢，不會有餘額不足的問題）
         Account account = accountRepository.findById(request.getAccountId())
                 .orElseThrow(() -> new BusinessException("ACCOUNT_NOT_FOUND", "帳戶不存在"));
@@ -143,6 +148,8 @@ public class TransferService {
         if (existing.isPresent()) {
             return existing.get();
         }
+
+        verifyAccountOwnership(request.getAccountId());
 
         // 2. 查詢帳戶（提現需要悲觀鎖，因為要扣錢）
         Account account = accountRepository.findByIdForUpdate(request.getAccountId())
@@ -184,9 +191,9 @@ public class TransferService {
 
     public Page<TransactionResponse> getTransactions(Long accountId, Pageable pageable) {
 
+
         // 1. 確認帳戶存在
-        accountRepository.findById(accountId)
-                .orElseThrow(() -> new BusinessException("ACCOUNT_NOT_FOUND", "帳戶不存在"));
+        verifyAccountOwnership(accountId);
 
         // 2. 查詢交易紀錄（轉入 + 轉出）
         Page<Transaction> transactions = transactionRepository
@@ -204,5 +211,11 @@ public class TransferService {
                 .remark(txn.getRemark())
                 .createdAt(txn.getCreatedAt())
                 .build());
+    }
+
+    private void verifyAccountOwnership(Long accountId) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        accountRepository.findByIdAndUserId(accountId, currentUserId)
+                .orElseThrow(() -> new BusinessException("ACCESS_DENIED", "無權操作此帳戶"));
     }
 }

@@ -7,6 +7,7 @@ import com.wallet.digitalwallet.entity.User;
 import com.wallet.digitalwallet.exception.BusinessException;
 import com.wallet.digitalwallet.repository.AccountRepository;
 import com.wallet.digitalwallet.repository.UserRepository;
+import com.wallet.digitalwallet.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -72,6 +73,12 @@ public class UserService {
 
     public List<AccountResponse> getAccounts(Long userId) {
 
+        // 新增：只能查自己的帳戶
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        if (!currentUserId.equals(userId)) {
+            throw new BusinessException("ACCESS_DENIED", "無權查看他人帳戶");
+        }
+
         if (!userRepository.existsById(userId)) {
             throw new BusinessException("USER_NOT_FOUND", "使用者不存在");
         }
@@ -80,6 +87,9 @@ public class UserService {
                 .map(this::toAccountResponse)
                 .collect(Collectors.toList());
     }
+
+
+
 
 
 
