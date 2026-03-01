@@ -8,9 +8,9 @@ import lombok.Setter;
 @Getter @Setter
 public class AccountStatusRequest {
 
-    @NotNull(message = "帳戶 ID 不可為空")
+    @NotNull(message = "Account ID must not be null")
     private Long accountId;
 
-    @NotBlank(message = "原因不可為空")
+    @NotBlank(message = "Reason must not be blank")
     private String reason;
 }

@@ -11,3 +11,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+  secret: your_256bit_hex_secret_key_here_at_least_32_chars
+  expiration: 86400000  # 24 hours (milliseconds)
