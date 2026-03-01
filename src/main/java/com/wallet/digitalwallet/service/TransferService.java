@@ -14,6 +14,7 @@ import com.wallet.digitalwallet.util.SecurityUtil;
 import com.wallet.digitalwallet.util.SnowflakeIdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -190,7 +191,8 @@ public class TransferService {
         return savedTxn;
     }
 
-    public Page<TransactionResponse> getTransactions(Long accountId, Pageable pageable) {
+    @NonNull
+    public Page<TransactionResponse> getTransactions(@NonNull Long accountId, @NonNull Pageable pageable) {
 
         // 權限檢查：只能查自己的交易紀錄
         verifyAccountOwnership(accountId);

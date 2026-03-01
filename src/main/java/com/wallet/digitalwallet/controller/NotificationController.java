@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -20,7 +21,8 @@ public class NotificationController {
 
     @Operation(summary = "查詢通知", description = "查詢指定帳戶的交易通知紀錄")
     @GetMapping("/{accountId}")
-    public ResponseEntity<ApiResponse<List<Notification>>> getNotifications(@PathVariable Long accountId) {
+    public ResponseEntity<ApiResponse<List<Notification>>> getNotifications(
+            @PathVariable @NonNull Long accountId) {
         return ResponseEntity.ok(ApiResponse.success(
                 notificationRepository.findByAccountIdOrderByCreatedAtDesc(accountId)));
     }
