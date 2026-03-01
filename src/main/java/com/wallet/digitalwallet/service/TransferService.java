@@ -1,11 +1,14 @@
 package com.wallet.digitalwallet.service;
 
+import com.wallet.digitalwallet.dto.TopUpRequest;
 import com.wallet.digitalwallet.dto.TransferRequest;
+import com.wallet.digitalwallet.dto.WithdrawRequest;
 import com.wallet.digitalwallet.entity.Account;
 import com.wallet.digitalwallet.entity.Transaction;
 import com.wallet.digitalwallet.exception.BusinessException;
 import com.wallet.digitalwallet.repository.AccountRepository;
 import com.wallet.digitalwallet.repository.TransactionRepository;
+import com.wallet.digitalwallet.util.SnowflakeIdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +21,10 @@ public class TransferService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+
+    // 加入欄位
+    private final SnowflakeIdGenerator idGenerator;
+
 
     @Transactional
     public Transaction transfer(TransferRequest request) {
@@ -65,7 +72,8 @@ public class TransferService {
 
         // 5. 建立交易紀錄
         Transaction txn = Transaction.builder()
-                .txnNo(UUID.randomUUID().toString())
+                // 把 builder 裡的 txnNo 改掉
+                .txnNo(String.valueOf(idGenerator.nextId()))
                 .fromAccountId(fromAccount.getId())
                 .toAccountId(toAccount.getId())
                 .amount(request.getAmount())
@@ -80,6 +88,81 @@ public class TransferService {
         // 6. 儲存
         accountRepository.save(fromAccount);
         accountRepository.save(toAccount);
+        return transactionRepository.save(txn);
+    }
+
+
+    @Transactional
+    public Transaction topUp(TopUpRequest request) {
+
+        // 1. 冪等性檢查
+        var existing = transactionRepository.findByIdempotencyKey(request.getIdempotencyKey());
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+
+        // 2. 查詢帳戶（儲值不需要悲觀鎖，因為只有加錢，不會有餘額不足的問題）
+        Account account = accountRepository.findById(request.getAccountId())
+                .orElseThrow(() -> new BusinessException("ACCOUNT_NOT_FOUND", "帳戶不存在"));
+
+        // 3. 加錢
+        account.setBalance(account.getBalance().add(request.getAmount()));
+
+        // 4. 建立交易紀錄
+        Transaction txn = Transaction.builder()
+                .txnNo(String.valueOf(idGenerator.nextId()))
+                .fromAccountId(null)
+                .toAccountId(account.getId())
+                .amount(request.getAmount())
+                .fee(BigDecimal.ZERO)
+                .type("TOPUP")
+                .status("SUCCESS")
+                .idempotencyKey(request.getIdempotencyKey())
+                .balanceAfterTxn(account.getBalance())
+                .remark(request.getRemark())
+                .build();
+
+        accountRepository.save(account);
+        return transactionRepository.save(txn);
+    }
+
+
+    @Transactional
+    public Transaction withdraw(WithdrawRequest request) {
+
+        // 1. 冪等性檢查
+        var existing = transactionRepository.findByIdempotencyKey(request.getIdempotencyKey());
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+
+        // 2. 查詢帳戶（提現需要悲觀鎖，因為要扣錢）
+        Account account = accountRepository.findByIdForUpdate(request.getAccountId())
+                .orElseThrow(() -> new BusinessException("ACCOUNT_NOT_FOUND", "帳戶不存在"));
+
+        // 3. 餘額檢查
+        if (account.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new BusinessException("INSUFFICIENT_BALANCE", "餘額不足");
+        }
+
+        // 4. 扣錢
+        account.setBalance(account.getBalance().subtract(request.getAmount()));
+
+        // 5. 建立交易紀錄
+        Transaction txn = Transaction.builder()
+                .txnNo(String.valueOf(idGenerator.nextId()))
+                .fromAccountId(account.getId())
+                .toAccountId(null)
+                .amount(request.getAmount())
+                .fee(BigDecimal.ZERO)
+                .type("WITHDRAW")
+                .status("SUCCESS")
+                .idempotencyKey(request.getIdempotencyKey())
+                .balanceAfterTxn(account.getBalance())
+                .remark(request.getRemark())
+                .build();
+
+        accountRepository.save(account);
         return transactionRepository.save(txn);
     }
 }
